@@ -4,17 +4,18 @@
 
 typedef struct params {
     int operation; // Qual n deve possuir resto = 0
-    int current;   // Posiçao atual de leitura
-    int *endVet;    // Ultima posicao do vetor
+    int *initVet;  // Posição 0 do Vetor
+    int *sizeVet;  // Tamanho do Vetor
+    int current;  // Posição que esta sendo lida
+    int *currentBrother; // Current do irmao
 } Params;
 
 int myGlobalVector[VETORGLOBAL];
 
 void generateRandomNumber();
-void removeDoVetor(Params *arg);
+void removerDoVetor(Params *arg);
 void checkVetor(Params *arg);
-void imprimirVetor();
-void buscaDoVetor(Params *arg);
+void buscarDoVetor(Params *arg);
 void runTrab02();
 
 #endif
