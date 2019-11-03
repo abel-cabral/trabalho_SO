@@ -22,8 +22,7 @@ void *thread_func(void *arg) {
     char finalTitle[MAX_LIMIT];
     sprintf(finalTitle, "%s%d", argument->title, argument->n_thread);
    
-    printf("Eu sou a %s e meu ID é %d(pthread_self) - %ld(gettid) \n", finalTitle, pthread_self(),
-           syscall(SYS_gettid));   // Exibe o ID do thread
+    printf("Eu sou a %s e meu ID é %li(pthread_self) - %ld(gettid) \n", finalTitle, pthread_self(), syscall(SYS_gettid));   // Exibe o ID do thread
     pthread_exit(0);
 }
 

@@ -11,7 +11,7 @@ typedef struct params {
 
 int myGlobalVector[VETORGLOBAL];
 
-void generateRandomNumber();
+void gerarNumeros();
 void removerDoVetor(Params *arg);
 void checkVetor(Params *arg);
 void buscarDoVetor(Params *arg);

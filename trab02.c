@@ -12,7 +12,7 @@ void runTrab02() {
     params[1].operation = 5;
     params[1].currentBrother = &params[0].current;
 
-    generateRandomNumber();
+    gerarNumeros();
 
     // imprimirVetor(myGlobalVector, sizeVet);
 
@@ -29,7 +29,7 @@ void runTrab02() {
     // imprimirVetor(myGlobalVector, sizeVet);
 }
 
-void generateRandomNumber() {
+void gerarNumeros() {
     for (int i = 0; i < VETORGLOBAL; i++) {
         myGlobalVector[i] = rand() % 100 + 1;
     }
