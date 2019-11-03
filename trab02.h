@@ -3,8 +3,7 @@
 #include "config.h"
 
 typedef struct params {
-    int operation; // Qual n deve possuir resto = 0
-    int *initVet;  // Posição 0 do Vetor
+    int operation; // Qual n deve possuir resto = 0   
     int *sizeVet;  // Tamanho do Vetor
     int current;  // Posição que esta sendo lida
     int *currentBrother; // Current do irmao
@@ -16,6 +15,8 @@ void generateRandomNumber();
 void removerDoVetor(Params *arg);
 void checkVetor(Params *arg);
 void buscarDoVetor(Params *arg);
+void imprimirVetor(int vetor[VETORGLOBAL], int tamanho);
 void runTrab02();
+
 
 #endif

@@ -1,8 +1,7 @@
 #include "trab02.h"
 
 void runTrab02() {
-    int N_THREADS = 2;
-    int initVet = 0;
+    int N_THREADS = 2;   
     int sizeVet = (VETORGLOBAL) - 1;
     Params params[N_THREADS];
     pthread_t threads[N_THREADS];
@@ -15,8 +14,9 @@ void runTrab02() {
 
     generateRandomNumber();
 
-    for (int i = 0; i < N_THREADS; i++) {
-        params[i].initVet = &initVet;
+    // imprimirVetor(myGlobalVector, sizeVet);
+
+    for (int i = 0; i < N_THREADS; i++) {       
         params[i].sizeVet = &sizeVet;
         params[i].current = sizeVet;
         pthread_create(&(threads[i]), NULL, (void *) buscarDoVetor, (void *) &(params[i]));
@@ -25,6 +25,8 @@ void runTrab02() {
     for (int i = 0; i < N_THREADS; i++) {
         pthread_join(threads[i], NULL);
     }
+
+    // imprimirVetor(myGlobalVector, sizeVet);
 }
 
 void generateRandomNumber() {
@@ -35,9 +37,13 @@ void generateRandomNumber() {
 
 // Cada Thread roda uma 'instancia' de buscaDoVetor
 void buscarDoVetor(Params *arg) {
-    printf("\n\nTHREAD %d INICIADA:\n", pthread_self());    
-    while (*(arg->sizeVet) >= *(arg->initVet)) {     
+    printf("\n\n----------------------------------\n");
+    if (arg->operation == 5) 
+        printf("MULTIPLOS DE 5\n");
+    if (arg->operation == 2) 
+        printf("MULTIPLOS DE 2\n");
 
+    do {
         if ((myGlobalVector[arg->current] % arg->operation) != 0) {
             arg->current = (arg->current - 1);                     
             continue;
@@ -47,12 +53,14 @@ void buscarDoVetor(Params *arg) {
         /* ############ ZONA CRÍTICA ################ */
         removerDoVetor(arg);
         /* ############ FIM ZONA CRÍTICA ################ */
-        sem_post(&mutex);        
-        //arg->current = (arg->current - 1);
-    }
-    if (arg->operation == 5) checkVetor(arg);
-    if (arg->operation == 2) checkVetor(arg);
-    pthread_exit(0);
+        sem_post(&mutex);       
+    } while(arg->current > -1);
+
+    if (arg->operation == 5)
+        checkVetor(arg);
+    
+    if (arg->operation == 2)
+        checkVetor(arg);    
 }
 
 // Organiza da posicao de recebeu ate index 0
@@ -62,29 +70,34 @@ void removerDoVetor(Params *arg) {
         myGlobalVector[auxCurrent] = myGlobalVector[auxCurrent + 1];
         auxCurrent++;
     }   
-
-    *(arg->sizeVet) = (*(arg->sizeVet) - 1);        // Diminui tamanho do vet
-    arg->current = (arg->current - 1);              // Current atualiza
-
-    if (arg->current > *(arg->sizeVet)) {           // Ajusta o current do irmao
-        *(arg->currentBrother) = (*(arg->currentBrother)) + 1;
-    }
+        
+    arg->current = (arg->current - 1);              // Atualizar current 
+    *(arg->sizeVet) = (*(arg->sizeVet) - 1);        // Ajustar vetor
+    if (*(arg->currentBrother) > *(arg->sizeVet))   // Atualizar brother
+        *(arg->currentBrother) = (*(arg->currentBrother) - 1);
 }
 
 // Busca elementos y com resto 0 no vetor
 void checkVetor(Params *arg) {
-    int status = 1;
-    int auxCurrent = VETORGLOBAL - 1;
-    while (auxCurrent >= *(arg->initVet)) {
-        if (myGlobalVector[auxCurrent] != 0) {
-            if (myGlobalVector[auxCurrent] % arg->operation == 0) {
+    int status = 1;    
+    int tamanho = *(arg->sizeVet);
+
+    for(int i = 0; i <= tamanho; i++) {
+        if (myGlobalVector[i] % arg->operation == 0) {
                 status = 0;
-                printf("Encontrei o número %d na posicao: %d do vetor\n", myGlobalVector[auxCurrent], auxCurrent);
+                printf("Encontrei o número %d na posicao: %d do vetor\n", myGlobalVector[i], i);
             }
-        }
-        auxCurrent--;
     }
-    if (status) {
+    if (status)
         printf("NENHUMA OCORRÊNCIA ENCONTRADA PARA %d\n", arg->operation);
+    
+}
+
+// Imprime todos os elementos de um vetor passado
+void imprimirVetor(int vetor[VETORGLOBAL], int tamanho) {
+    printf("\n############################################\n");
+    for(int i = 0; i <= tamanho; i++) {
+        printf("%d ", vetor[i]);
     }
+    printf("\n############################################\n");
 }
