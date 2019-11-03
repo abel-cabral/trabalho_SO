@@ -7,22 +7,28 @@ void runTrab03(){
     int *endGlobalVet;
     int *status;
     pid_t pid;
-    Params2 params[N_PROCESS];
+    ParamsB params[N_PROCESS];    
+    int sizeVet = (VETORGLOBAL) - 1; 
+
+    //Memoria Compartilhada       
     glob_var = mmap(NULL, sizeof *glob_var * sizeof(int) * VETORGLOBAL, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     endGlobalVet = mmap(NULL, sizeof endGlobalVet, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     status = mmap(NULL, sizeof *status, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    
     *status = 0;
     *endGlobalVet = 0;
-
-    generateRandomNumber2();
-
+    
     // Remover Pares e Multiplos de 5
     params[0].operation = 2;
+    params[0].currentBrother = &params[1].current;
     params[1].operation = 5;
+    params[1].currentBrother = &params[0].current;
 
-    for(int i = 0; i < N_PROCESS; i++) {
-        params[i].current = (VETORGLOBAL) - 1;
-        params[i].endVet = endGlobalVet;
+    gerarNumeros_();
+    
+    for (int i = 0; i < N_PROCESS; i++) {       
+        params[i].sizeVet = &sizeVet;
+        params[i].current = sizeVet;        
     }
 
     pid = fork();
@@ -32,87 +38,82 @@ void runTrab03(){
         case -1:
             printf("Error ao iniciar processor filho\n");
             break;
-        case 0:
-            while (true) {
-                if (*status == 1) break;
-                wait(1);
-            }
+        case 0:            
+            sem_wait(sharedMutex);            
             printf("INICIANDO PROCESSO FILHO\n");
-            buscaDoVetor2(&params[1]);
-            // imprimirVetor2(glob_var, VETORGLOBAL, *params[1].endVet);
-            *status = 0;
+            buscarDoVetor_(&params[1]);
+            sem_post(sharedMutex);  
             break;
-        default:
+        default:            
+            sem_wait(sharedMutex);            
             printf("INICIANDO PROCESSO PAI\n");
-            buscaDoVetor2(&params[0]);
-            // imprimirVetor2(glob_var, VETORGLOBAL, *params[0].endVet);
-            *status = 1;
-            while (true) {
-                if (*status == 0) break;
-                wait(1);
-            }
+            buscarDoVetor_(&params[0]);
+            sem_post(sharedMutex);       
+            
+            wait(1);
+
+            sem_wait(sharedMutex);            
+            printf("Verificando ambos\n");         
+            sem_post(sharedMutex);
     }
 
 
 
 }
 
-void generateRandomNumber2() {
+
+void gerarNumeros_() {
     for (int i = 0; i < VETORGLOBAL; i++) {
-        glob_var[i] = rand() % 100 + 1;
+        myGlobalVector[i] = rand() % 100 + 1;
     }
 }
 
-void buscaDoVetor2(Params2 *arg) {
-    while (arg->current >= *(arg->endVet)) {
-        if ((glob_var[arg->current] % arg->operation) != 0 ) {
-            arg->current = (arg->current - 1);
+// Cada Thread roda uma 'instancia' de buscaDoVetor
+void buscarDoVetor_(ParamsB *arg) {
+    do {
+        if ((myGlobalVector[arg->current] % arg->operation) != 0) {
+            arg->current = (arg->current - 1);                     
             continue;
-        }
-        removeDoVetor2(arg);
-        arg->current = (VETORGLOBAL) - 1;
-    }
-    if (arg->operation == 5) checkVetor2(arg);
-    if (arg->operation == 2) checkVetor2(arg);
+        }   
+        removerDoVetor_(arg);        
+    } while(arg->current > -1);
 }
 
 // Organiza da posicao de recebeu ate index 0
-void removeDoVetor2(Params2 *arg) {
-    int posicao = arg->current;
-    while(posicao > *(arg->endVet)) {
-        // Evita ciclos desnecessários de troca
-        glob_var[posicao] = glob_var[posicao - 1];
-        posicao--;
-    }
-    *(arg->endVet) = (*(arg->endVet) + 1);          // Diminui o Vetor conforme fazemos remocoes e realocacoes
+void removerDoVetor_(ParamsB *arg) {
+    int auxCurrent = arg->current;    
+    while (auxCurrent < *(arg->sizeVet)) {        
+        myGlobalVector[auxCurrent] = myGlobalVector[auxCurrent + 1];
+        auxCurrent++;
+    }   
+        
+    arg->current = (arg->current - 1);              // Atualizar current 
+    *(arg->sizeVet) = (*(arg->sizeVet) - 1);        // Ajustar vetor
+    if (*(arg->currentBrother) > *(arg->sizeVet))   // Atualizar brother
+        *(arg->currentBrother) = (*(arg->currentBrother) - 1);
 }
 
 // Busca elementos y com resto 0 no vetor
-void checkVetor2(Params2 *arg) {
-    int status = 1;
-    int auxIndex = VETORGLOBAL - 1;
-    while (auxIndex >= *(arg->endVet)) {
-        if (glob_var[auxIndex] != 0) {
-            if(glob_var[auxIndex] % arg->operation == 0) {
+void checkVetor_(ParamsB *arg) {
+    int status = 1;    
+    int tamanho = *(arg->sizeVet);
+
+    for(int i = 0; i <= tamanho; i++) {
+        if (myGlobalVector[i] % arg->operation == 0) {
                 status = 0;
-                printf("Encontrei o número %d na posicao: %d do vetor\n", glob_var[auxIndex], auxIndex);
+                printf("Encontrei o número %d na posicao: %d do vetor\n", myGlobalVector[i], i);
             }
-        }
-        auxIndex--;
     }
-    if(status) {
+    if (status)
         printf("NENHUMA OCORRÊNCIA ENCONTRADA PARA %d\n", arg->operation);
-    }
+    
 }
 
-void imprimirVetor2(int *vetor, int size, int last) {
-    int auxIndex = size - 1;
-    printf("\n---------------------------INICIO--------------------------------\n");
-    while (auxIndex >= last) {
-        if (vetor[auxIndex] != 0) {
-            printf("%d\t", vetor[auxIndex]);
-        }
-        auxIndex--;
+// Imprime todos os elementos de um vetor passado
+void imprimirVetor_(int vetor[VETORGLOBAL], int tamanho) {
+    printf("\n############################################\n");
+    for(int i = 0; i <= tamanho; i++) {
+        printf("%d ", vetor[i]);
     }
-    printf("\n---------------------------FIM--------------------------------\n");
+    printf("\n############################################\n");
 }

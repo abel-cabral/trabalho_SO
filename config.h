@@ -15,6 +15,8 @@
 #define NAME_THREADS "thread_"
 #define VETORGLOBAL 100000
 #define true 1
+
+// Necessarios para exclusao mutua
 sem_t mutex;
 
 #endif
