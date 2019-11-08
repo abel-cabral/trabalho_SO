@@ -4,18 +4,14 @@ int *glob_var;
 
 void runTrab03(){
     int N_PROCESS = 2;
-    int *endGlobalVet;
-    int *status;
+    int *endGlobalVet;   
     pid_t pid;
     ParamsB params[N_PROCESS];    
     int sizeVet = (VETORGLOBAL) - 1; 
 
     //Memoria Compartilhada       
-    glob_var = mmap(NULL, sizeof *glob_var * sizeof(int) * VETORGLOBAL, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    endGlobalVet = mmap(NULL, sizeof endGlobalVet, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    status = mmap(NULL, sizeof *status, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    
-    *status = 0;
+    glob_var = mmap(NULL, sizeof *glob_var * sizeof(int) * VETORGLOBAL, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
+    endGlobalVet = mmap(NULL, sizeof endGlobalVet, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);      
     *endGlobalVet = 0;
     
     // Remover Pares e Multiplos de 5
@@ -38,27 +34,15 @@ void runTrab03(){
         case -1:
             printf("Error ao iniciar processor filho\n");
             break;
-        case 0:            
-            sem_wait(sharedMutex);            
+        case 0:                       
             printf("INICIANDO PROCESSO FILHO\n");
-            buscarDoVetor_(&params[1]);
-            sem_post(sharedMutex);  
+            buscarDoVetor_(&params[1]);            
             break;
-        default:            
-            sem_wait(sharedMutex);            
+        default:    
             printf("INICIANDO PROCESSO PAI\n");
-            buscarDoVetor_(&params[0]);
-            sem_post(sharedMutex);       
-            
-            wait(1);
-
-            sem_wait(sharedMutex);            
-            printf("Verificando ambos\n");         
-            sem_post(sharedMutex);
+            buscarDoVetor_(&params[0]);    
+            printf("Verificando ambos\n"); 
     }
-
-
-
 }
 
 

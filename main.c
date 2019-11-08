@@ -18,10 +18,8 @@ int main(int argc, char **argv) {
             runTrab02();
             sem_destroy(&mutex);
             break;
-        case 3:
-            sem_init(&sharedMutex, 0, 1);
-            runTrab03();
-            sem_destroy(&sharedMutex);
+        case 3:            
+            runTrab03();            
             break;
     }
     return 0;
