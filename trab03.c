@@ -160,3 +160,6 @@ void imprimirVetor_(int vetor[VETORGLOBAL], int tamanho) {
     }
     printf("\n############################################\n");
 }
+
+
+// FONTE: https://stackoverflow.com/questions/16400820/how-to-use-posix-semaphores-on-forked-processes-in-c
