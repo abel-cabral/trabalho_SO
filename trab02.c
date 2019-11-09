@@ -1,6 +1,8 @@
 #include "trab02.h"
 
 void runTrab02() {
+    sem_init(&mutex, 1, 1); 
+
     int N_THREADS = 2;   
     int sizeVet = (VETORGLOBAL) - 1;
     Params params[N_THREADS];
@@ -11,6 +13,7 @@ void runTrab02() {
     params[0].currentBrother = &params[1].current;
     params[1].operation = 5;
     params[1].currentBrother = &params[0].current;
+    
 
     gerarNumeros();
 
@@ -27,6 +30,7 @@ void runTrab02() {
     }
 
     // imprimirVetor(myGlobalVector, sizeVet);
+    sem_destroy(&mutex);
 }
 
 void gerarNumeros() {

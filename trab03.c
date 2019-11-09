@@ -2,7 +2,7 @@
 
 int *glob_var;
 
-void runTrab03(){
+void runTrab03(){       
     int N_PROCESS = 2;
     int *endGlobalVet;   
     pid_t pid;
@@ -34,13 +34,20 @@ void runTrab03(){
         case -1:
             printf("Error ao iniciar processor filho\n");
             break;
-        case 0:                       
+        case 0:    
+            sleep(1);
+            sem_wait(&mutex);                    
             printf("INICIANDO PROCESSO FILHO\n");
-            buscarDoVetor_(&params[1]);            
+            buscarDoVetor_(&params[1]);    
+            printf("FIM FILHO\n");
+            sem_post(&mutex);        
             break;
-        default:    
-            printf("INICIANDO PROCESSO PAI\n");
-            buscarDoVetor_(&params[0]);    
+        default: 
+            sem_wait(&mutex);   
+            printf("INICIANDO PROCESSO PAI\n");            
+            buscarDoVetor_(&params[0]);   
+            printf("FIM PAI\n");
+            sem_post(&mutex);    
             printf("Verificando ambos\n"); 
     }
 }

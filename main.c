@@ -3,7 +3,7 @@
 #include "trab03.h"
 
 int main(int argc, char **argv) {
-    int status;
+    int status;   
     do {
         printf("Escolha uma parte do trabalho, 1 - 2 - 3 -> ");
         scanf("%d", &status);
@@ -13,14 +13,12 @@ int main(int argc, char **argv) {
         case 1:
             runTrab01();
             break;
-        case 2:
-            sem_init(&mutex, 0, 1);
-            runTrab02();
-            sem_destroy(&mutex);
+        case 2:            
+            runTrab02();            
             break;
-        case 3:            
-            runTrab03();            
+        case 3:                  
+            runTrab03(); 
             break;
-    }
+    }    
     return 0;
 }

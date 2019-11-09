@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <sys/syscall.h>
 #include <semaphore.h>
+#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 
@@ -17,6 +17,6 @@
 #define true 1
 
 // Necessarios para exclusao mutua
+int sem_init(sem_t *mutex, int pshared, unsigned int value);
 sem_t mutex;
-
 #endif
