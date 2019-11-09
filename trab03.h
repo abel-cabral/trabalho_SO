@@ -1,6 +1,10 @@
 #ifndef TRABALHO_01_TRAB03_H
 #define TRABALHO_01_TRAB03_H
 #include "config.h"
+#include <sys/types.h>      /* key_t, sem_t, pid_t      */
+#include <sys/shm.h>        /* shmat(), IPC_RMID        */
+#include <errno.h>          /* errno, ECHILD            */
+#include <fcntl.h>          /* O_CREAT, O_EXEC          */
 
 typedef struct paramsB {
     int operation; // Qual n deve possuir resto = 0   

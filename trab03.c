@@ -4,15 +4,41 @@ int *glob_var;
 
 void runTrab03(){       
     int N_PROCESS = 2;
-    int *endGlobalVet;   
-    pid_t pid;
+    int *endGlobalVet;     
     ParamsB params[N_PROCESS];    
     int sizeVet = (VETORGLOBAL) - 1; 
+    int *alternador;
+   
+    key_t shmkey;                 /*      shared memory key       */
+    int shmid;                    /*      shared memory id        */
+    sem_t *sem;                   /*      synch semaphore         */
+    pid_t pid;                    /*      fork pid                */
+    int *p;                       /*      shared variable         */
+
+    /* cleanup semaphores */
+    sem_unlink ("pSem");   
+       
+    /* initialize a shared variable in shared memory */
+    shmkey = ftok ("/dev/null", 5);       /* valid directory name and a number */    
+    shmid = shmget (shmkey, sizeof (int), 0644 | IPC_CREAT);
+    if (shmid < 0){                           /* shared memory error check */
+        perror ("shmget\n");
+        exit (1);
+    }
+
+    p = (int *) shmat (shmid, NULL, 0);   /* attach p to shared memory */
+    *p = 0;
+
+    /* initialize semaphores for shared processes */
+    sem = sem_open ("pSem", O_CREAT | O_EXCL, 0644, 1); 
+    /* name of semaphore is "pSem", semaphore is reached using this name */
 
     //Memoria Compartilhada       
     glob_var = mmap(NULL, sizeof *glob_var * sizeof(int) * VETORGLOBAL, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);
-    endGlobalVet = mmap(NULL, sizeof endGlobalVet, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);      
+    endGlobalVet = mmap(NULL, sizeof endGlobalVet, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);    
+    alternador = mmap(NULL, sizeof alternador, PROT_READ | PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED, -1, 0);     
     *endGlobalVet = 0;
+    *alternador = 1;
     
     // Remover Pares e Multiplos de 5
     params[0].operation = 2;
@@ -34,21 +60,47 @@ void runTrab03(){
         case -1:
             printf("Error ao iniciar processor filho\n");
             break;
-        case 0:    
-            sleep(1);
-            sem_wait(&mutex);                    
+        case 0:  
+            // ################# PASSO 02  ################# //  
+            while(*alternador);
+            sem_wait(sem);   
+            *alternador = 0;                 
             printf("INICIANDO PROCESSO FILHO\n");
-            buscarDoVetor_(&params[1]);    
-            printf("FIM FILHO\n");
-            sem_post(&mutex);        
+            buscarDoVetor_(&params[1]);                
+            *alternador = 1;  
+            sem_post(sem);        
+
+            // ################# PASSO 04  ################# //
+            while(*alternador);
+            sem_wait(sem);   
+            *alternador = 0;                 
+            checkVetor_(&params[1]);                    
+            sem_post(sem);  
             break;
         default: 
-            sem_wait(&mutex);   
+            // ################# PASSO 01  ################# //
+            sem_wait(sem);   
+            *alternador = 0;
             printf("INICIANDO PROCESSO PAI\n");            
             buscarDoVetor_(&params[0]);   
-            printf("FIM PAI\n");
-            sem_post(&mutex);    
-            printf("Verificando ambos\n"); 
+            *alternador = 1;
+            sem_post(sem);    
+
+            // ################# PASSO 03  ################# //
+            while(*alternador);
+            sem_wait(sem);   
+            *alternador = 0;                 
+            checkVetor_(&params[0]);  
+            *alternador = 1;                   
+            sem_post(sem);  
+
+            // ################# PASSO 05  ################# //
+            while(*alternador);
+            sem_wait(sem);  
+            sem_unlink("pSem");   
+            sem_close(sem); 
+            printf("FIM DA OPERACAO\n");  
+            exit(0);           
     }
 }
 
