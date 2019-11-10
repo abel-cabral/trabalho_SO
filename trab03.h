@@ -13,7 +13,14 @@ typedef struct paramsB {
     int *currentBrother; // Current do irmao
 } ParamsB;
 
-int myGlobalVector[VETORGLOBAL];
+int *endGlobalVet;     
+int *glob_var;
+int *alternador;   
+key_t shmkey;                 /*      shared memory key       */
+int shmid;                    /*      shared memory id        */
+sem_t *sem;                   /*      synch semaphore         */
+pid_t pid;                    /*      fork pid                */
+int *p;                       /*      shared variable         */
 
 void gerarNumeros_();
 void removerDoVetor_(ParamsB *arg);

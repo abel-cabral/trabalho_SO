@@ -1,19 +1,9 @@
 #include "./trab03.h"
 
-int *glob_var;
-
 void runTrab03(){       
     int N_PROCESS = 2;
-    int *endGlobalVet;     
     ParamsB params[N_PROCESS];    
     int sizeVet = (VETORGLOBAL) - 1; 
-    int *alternador;
-   
-    key_t shmkey;                 /*      shared memory key       */
-    int shmid;                    /*      shared memory id        */
-    sem_t *sem;                   /*      synch semaphore         */
-    pid_t pid;                    /*      fork pid                */
-    int *p;                       /*      shared variable         */
 
     /* cleanup semaphores */
     sem_unlink ("pSem");   
@@ -47,6 +37,7 @@ void runTrab03(){
     params[1].currentBrother = &params[0].current;
 
     gerarNumeros_();
+    
     
     for (int i = 0; i < N_PROCESS; i++) {       
         params[i].sizeVet = &sizeVet;
@@ -99,6 +90,7 @@ void runTrab03(){
             sem_wait(sem);  
             sem_unlink("pSem");   
             sem_close(sem); 
+            // imprimirVetor_(glob_var, sizeVet);
             printf("FIM DA OPERACAO\n");  
             exit(0);           
     }
@@ -107,14 +99,14 @@ void runTrab03(){
 
 void gerarNumeros_() {
     for (int i = 0; i < VETORGLOBAL; i++) {
-        myGlobalVector[i] = rand() % 100 + 1;
+        glob_var[i] = rand() % 100 + 1;
     }
 }
 
 // Cada Thread roda uma 'instancia' de buscaDoVetor
 void buscarDoVetor_(ParamsB *arg) {
     do {
-        if ((myGlobalVector[arg->current] % arg->operation) != 0) {
+        if ((glob_var[arg->current] % arg->operation) != 0) {
             arg->current = (arg->current - 1);                     
             continue;
         }   
@@ -126,7 +118,7 @@ void buscarDoVetor_(ParamsB *arg) {
 void removerDoVetor_(ParamsB *arg) {
     int auxCurrent = arg->current;    
     while (auxCurrent < *(arg->sizeVet)) {        
-        myGlobalVector[auxCurrent] = myGlobalVector[auxCurrent + 1];
+        glob_var[auxCurrent] = glob_var[auxCurrent + 1];
         auxCurrent++;
     }   
         
@@ -142,9 +134,9 @@ void checkVetor_(ParamsB *arg) {
     int tamanho = *(arg->sizeVet);
 
     for(int i = 0; i <= tamanho; i++) {
-        if (myGlobalVector[i] % arg->operation == 0) {
+        if (glob_var[i] % arg->operation == 0) {
                 status = 0;
-                printf("Encontrei o número %d na posicao: %d do vetor\n", myGlobalVector[i], i);
+                printf("Encontrei o número %d na posicao: %d do vetor\n", glob_var[i], i);
             }
     }
     if (status)
